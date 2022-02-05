@@ -1,8 +1,10 @@
 package Server;
 
+import Client.Client;
 import Main.Settings;
 
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -15,33 +17,22 @@ public class Server
     private PacketsHandler packetsHandler;
     private ClientsHandler clientsHandler;
 
-    private List<Socket> clients;
+    private List<Client> clients;
 
-    private String serverIP;
+    private List<Object> packets;
+
+    private int playersNum;
 
     private boolean serverCreated;
 
     public Server()
     {
-        serverIP = "";
-        //serverIP = Utils.Utils.getCurrentIP();
-        serverIP = "31.173.84.102";
-
         clients = new ArrayList<>();
 
+        packets = new ArrayList<>();
+
+        playersNum = 0;
         try {
-            System.out.println(serverIP);
-
-            /*
-            String str1 = serverIP;
-            String str2 ="254.250.252.0";
-            String[] command1 = { "netsh", "interface", "ip", "set", "address",
-                    "name=", "Local Area Connection" ,"source=static", "addr1=" + str1,
-                    "mask=" + str2};
-            Process pp = java.lang.Runtime.getRuntime().exec(command1);
-
-             */
-
             serverSocket = new ServerSocket(Settings.ServerSettings.SERVER_PORT);
 
             serverCreated = true;
@@ -69,7 +60,10 @@ public class Server
 
     public ServerSocket getServerSocket() { return serverSocket; }
 
-    public String getServerIP() { return serverIP; }
+    public List<Client> getClients() { return clients; }
 
-    public List<Socket> getClients() { return clients; }
+    public List<Object> getPackets() { return packets; }
+
+    public int getPlayersNum() { return playersNum; }
+    public void setPlayersNum(int playersNum) { this.playersNum = playersNum; }
 }
