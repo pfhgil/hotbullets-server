@@ -1,11 +1,12 @@
 package Client;
 
+import General.ServerPacket;
 import Main.Main;
 
 import java.io.*;
 import java.net.Socket;
+import java.net.SocketException;
 
-import Server.ServerPacket;
 import Server.UID;
 
 // класс клиента
@@ -28,11 +29,16 @@ public class Client
         id = Main.server.getUid().GetFreeAndEmploy();
 
         try {
+            out = new ObjectOutputStream(new BufferedOutputStream(socket.getOutputStream()));
+            out.writeObject(new ServerPacket("тест 1", id.getID()));
+            out.flush();
+            in = new ObjectInputStream(new BufferedInputStream(socket.getInputStream()));
+
             inThread = new Thread(() -> {
                 while(true) {
                     if(packetsHandlingActive) {
                         try {
-                            Thread.sleep(16);
+                            Thread.sleep(5);
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         }
@@ -41,8 +47,11 @@ public class Client
                             try {
                                 Object obj = null;
                                 try {
-                                    obj = in.readObject();
-                                } catch (EOFException e) {
+                                    if(in != null) obj = in.readObject();
+                                } catch (EOFException e ) {
+                                    Disconnect();
+                                    break;
+                                } catch (SocketException se) {
                                     Disconnect();
                                     break;
                                 }
@@ -53,9 +62,14 @@ public class Client
                                 } else {
                                     for(Client client : Main.server.getClients()) {
                                         if(client != null && client != this) {
-                                            ServerPacket serverPacket = new ServerPacket(obj, client.getId().getID());
-                                            client.getOut().writeObject(serverPacket);
-                                            client.getOut().flush();
+                                            try {
+                                                ServerPacket serverPacket = new ServerPacket(obj, id.getID());
+                                                client.getOut().writeObject(serverPacket);
+                                                client.getOut().flush();
+                                            } catch (SocketException e) {
+                                                Disconnect();
+                                                break;
+                                            }
                                         }
                                     }
                                 }
@@ -66,9 +80,6 @@ public class Client
                     }
                 }
             });
-
-            out = new ObjectOutputStream(new BufferedOutputStream(socket.getOutputStream()));
-            in = new ObjectInputStream(new BufferedInputStream(socket.getInputStream()));
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -101,7 +112,11 @@ public class Client
             out.flush();
             out.close();
 
+            out = null;
+            in = null;
+
             socket.close();
+            socket = null;
 
             Main.server.getClients()[id.getID()] = null;
         } catch (IOException e) {

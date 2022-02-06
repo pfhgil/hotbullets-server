@@ -17,7 +17,7 @@ public class ClientsHandler
         clientsWaitingThread = new Thread(() -> {
             while(true) {
                 try {
-                    Thread.sleep(16);
+                    Thread.sleep(60);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -27,11 +27,11 @@ public class ClientsHandler
                         Client newClient = new Client(newClientSocket);
 
                         server.setPlayersNum(server.getPlayersNum() + 1);
-                        server.getClients()[server.getPlayersNum() - 1] = newClient;
+                        server.getClients()[newClient.getId().getID()] = newClient;
 
-                        server.getClients()[server.getPlayersNum() - 1].StartPacketsHandling();
+                        server.getClients()[newClient.getId().getID()].StartPacketsHandling();
 
-                        System.out.println("Подключился игрок: " + newClientSocket.getInetAddress().getCanonicalHostName() + ". ID: " + server.getClients()[server.getPlayersNum() - 1].getId().getID());
+                        System.out.println("Подключился игрок: " + newClientSocket.getInetAddress().getCanonicalHostName() + ". ID: " + server.getClients()[newClient.getId().getID()].getId().getID());
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
