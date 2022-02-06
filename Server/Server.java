@@ -14,24 +14,23 @@ public class Server
 {
     private ServerSocket serverSocket;
 
-    private PacketsHandler packetsHandler;
     private ClientsHandler clientsHandler;
 
-    private List<Client> clients;
-
-    private List<Object> packets;
+    private Client[] clients;
 
     private int playersNum;
 
     private boolean serverCreated;
 
+    private UID uid;
+
     public Server()
     {
-        clients = new ArrayList<>();
-
-        packets = new ArrayList<>();
+        clients = new Client[Settings.ServerSettings.MAX_PLAYERS];
 
         playersNum = 0;
+
+        uid = new UID(Settings.ServerSettings.MAX_PLAYERS);
         try {
             serverSocket = new ServerSocket(Settings.ServerSettings.SERVER_PORT);
 
@@ -44,13 +43,9 @@ public class Server
     public void Start()
     {
         if(serverCreated) {
-            packetsHandler = new PacketsHandler(this);
             clientsHandler = new ClientsHandler(this);
 
             clientsHandler.StartHandling();
-
-            packetsHandler.StartInHandling();
-            packetsHandler.StartOutHandling();
 
             System.out.println("Server started!");
         } else {
@@ -60,10 +55,10 @@ public class Server
 
     public ServerSocket getServerSocket() { return serverSocket; }
 
-    public List<Client> getClients() { return clients; }
-
-    public List<Object> getPackets() { return packets; }
+    public Client[] getClients() { return clients; }
 
     public int getPlayersNum() { return playersNum; }
     public void setPlayersNum(int playersNum) { this.playersNum = playersNum; }
+
+    public UID getUid() { return uid; }
 }

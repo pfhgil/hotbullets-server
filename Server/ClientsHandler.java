@@ -9,7 +9,6 @@ import java.net.Socket;
 public class ClientsHandler
 {
     private Thread clientsWaitingThread;
-    private Thread clientsDisconnectCheckThread;
 
     private boolean handlingActive;
 
@@ -27,43 +26,14 @@ public class ClientsHandler
                         Socket newClientSocket = server.getServerSocket().accept();
                         Client newClient = new Client(newClientSocket);
 
-                        System.out.println("Подключился игрок: " + newClientSocket.getInetAddress().getCanonicalHostName());
-
-                        server.getClients().add(newClient);
                         server.setPlayersNum(server.getPlayersNum() + 1);
+                        server.getClients()[server.getPlayersNum() - 1] = newClient;
+
+                        server.getClients()[server.getPlayersNum() - 1].StartPacketsHandling();
+
+                        System.out.println("Подключился игрок: " + newClientSocket.getInetAddress().getCanonicalHostName() + ". ID: " + server.getClients()[server.getPlayersNum() - 1].getId().getID());
                     } catch (IOException e) {
                         e.printStackTrace();
-                    }
-                }
-            }
-        });
-
-        clientsDisconnectCheckThread = new Thread(() -> {
-            while(true) {
-                try {
-                    Thread.sleep(16);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-
-                if(handlingActive) {
-                    for(int i = 0; i < server.getClients().size(); i++) {
-                        if(!server.getClients().get(i).getSocket().isConnected()) {
-                            try {
-                                server.getClients().get(i).getIn().close();
-
-                                server.getClients().get(i).getOut().flush();
-                                server.getClients().get(i).getOut().close();
-
-                                server.getClients().get(i).getSocket().close();
-
-                                System.out.println("Отключился игрок: " + server.getClients().get(i).getSocket().getInetAddress().getCanonicalHostName());
-
-                                server.getClients().remove(i);
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            }
-                        }
                     }
                 }
             }
@@ -75,7 +45,6 @@ public class ClientsHandler
         handlingActive = true;
         
         clientsWaitingThread.start();
-        clientsDisconnectCheckThread.start();
     }
 
     public void StopHandling()
