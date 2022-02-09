@@ -24,6 +24,7 @@ public class ClientsHandler
                 if(handlingActive && server.getPlayersNum() < Settings.ServerSettings.MAX_PLAYERS) {
                     try {
                         Socket newClientSocket = server.getServerSocket().accept();
+                        newClientSocket.setTcpNoDelay(true);
                         Client newClient = new Client(newClientSocket);
 
                         server.setPlayersNum(server.getPlayersNum() + 1);

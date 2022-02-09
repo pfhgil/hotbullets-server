@@ -29,29 +29,30 @@ public class Client
         id = Main.server.getUid().GetFreeAndEmploy();
 
         try {
-            out = new ObjectOutputStream(new BufferedOutputStream(socket.getOutputStream()));
+            out = new ObjectOutputStream(new DataOutputStream(socket.getOutputStream()));
             out.writeObject(new ServerPacket("тест 1", id.getID()));
             out.flush();
-            in = new ObjectInputStream(new BufferedInputStream(socket.getInputStream()));
+            in = new ObjectInputStream(new DataInputStream(socket.getInputStream()));
 
             inThread = new Thread(() -> {
                 while(true) {
                     if(packetsHandlingActive) {
+                        /*
                         try {
                             Thread.sleep(5);
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         }
 
+                         */
+
                         if(in != null) {
                             try {
                                 Object obj = null;
                                 try {
-                                    if(in != null) obj = in.readObject();
-                                } catch (EOFException e ) {
-                                    Disconnect();
-                                    break;
-                                } catch (SocketException se) {
+                                    obj = in.readObject();
+                                } catch (EOFException | ClassNotFoundException | SocketException e ) {
+                                    e.printStackTrace();
                                     Disconnect();
                                     break;
                                 }
@@ -61,7 +62,7 @@ public class Client
                                     break;
                                 } else {
                                     for(Client client : Main.server.getClients()) {
-                                        if(client != null && client != this) {
+                                        if(client != null && client.getOut() != null && client != this) {
                                             try {
                                                 ServerPacket serverPacket = new ServerPacket(obj, id.getID());
                                                 client.getOut().writeObject(serverPacket);
@@ -73,7 +74,7 @@ public class Client
                                         }
                                     }
                                 }
-                            } catch (IOException | ClassNotFoundException e) {
+                            } catch (IOException e) {
                                 e.printStackTrace();
                             }
                         }
