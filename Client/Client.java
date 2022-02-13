@@ -23,6 +23,8 @@ public class Client
 
     private UID.ID id;
 
+    private Object inPacket;
+
     public Client(Socket _socket)
     {
         socket = _socket;
@@ -48,23 +50,22 @@ public class Client
 
                         if(in != null) {
                             try {
-                                Object obj = null;
                                 try {
-                                    obj = in.readObject();
+                                    inPacket = in.readObject();
                                 } catch (EOFException | ClassNotFoundException | SocketException e ) {
                                     e.printStackTrace();
                                     Disconnect();
                                     break;
                                 }
 
-                                if(obj == null) {
+                                if(inPacket == null) {
                                     Disconnect();
                                     break;
                                 } else {
                                     for(Client client : Main.server.getClients()) {
                                         if(client != null && client.getOut() != null && client != this) {
                                             try {
-                                                ServerPacket serverPacket = new ServerPacket(obj, id.getID());
+                                                ServerPacket serverPacket = new ServerPacket(inPacket, id.getID());
                                                 client.getOut().writeObject(serverPacket);
                                                 client.getOut().flush();
                                             } catch (SocketException e) {
